@@ -1,0 +1,673 @@
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-sans);background:#f0f4f8;color:#1a2e4a;min-height:100vh}
+  :root{
+    --blue:#2d7dd2;--blue-light:#e8f2fc;--blue-mid:#5a9fd4;
+    --green:#2a9d5c;--green-light:#e6f5ed;
+    --amber:#e07b00;--amber-light:#fff4e0;
+    --red:#d93025;--red-light:#fde8e6;
+    --purple:#6b4eb6;--purple-light:#f0ecfb;
+    --teal:#1a8f8f;--teal-light:#e0f5f5;
+    --card:#ffffff;--border:#d1dce9;--muted:#5a7390;
+    --bg:#f0f4f8;--text:#1a2e4a;
+  }
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+  #app{max-width:720px;margin:0 auto;padding:0 0 80px}
+
+  .top-bar{background:var(--blue);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-radius:0 0 20px 20px;margin-bottom:24px;position:relative}
+  .top-bar h1{color:#fff;font-size:22px;font-weight:500}
+  .top-bar .time-date{color:rgba(255,255,255,0.85);font-size:14px;text-align:right}
+  .sos-pill{background:#fff;color:var(--red);border-radius:20px;padding:8px 18px;font-size:15px;font-weight:500;border:none;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .sos-pill i{font-size:18px}
+
+  .nav{display:flex;gap:6px;padding:0 16px;margin-bottom:20px;overflow-x:auto;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav-btn{flex:0 0 auto;padding:10px 16px;border-radius:24px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font-sans);white-space:nowrap;transition:all 0.2s}
+  .nav-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .nav-btn i{font-size:16px}
+
+  .section{display:none;padding:0 16px}
+  .section.active{display:block}
+
+  .greeting-card{background:linear-gradient(135deg,var(--blue) 0%,#1a5fa8 100%);border-radius:20px;padding:24px;color:#fff;margin-bottom:20px;position:relative;overflow:hidden}
+  .greeting-card::after{content:'';position:absolute;right:-20px;top:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08)}
+  .greeting-card h2{font-size:24px;font-weight:500;margin-bottom:6px}
+  .greeting-card p{font-size:15px;opacity:0.88;line-height:1.5}
+  .weather-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.18);border-radius:12px;padding:6px 12px;font-size:13px;margin-top:12px}
+
+  .section-label{font-size:13px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin:20px 0 10px}
+
+  .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+  .quick-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 16px;cursor:pointer;text-align:center;transition:all 0.2s}
+  .quick-card:hover{border-color:var(--blue);transform:translateY(-1px)}
+  .quick-card .icon-circle{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:24px}
+  .quick-card h3{font-size:15px;font-weight:500;margin-bottom:3px;color:var(--text)}
+  .quick-card p{font-size:12px;color:var(--muted)}
+
+  .wellness-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+  .well-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center}
+  .well-card .num{font-size:26px;font-weight:500;color:var(--blue);line-height:1}
+  .well-card .lbl{font-size:11px;color:var(--muted);margin-top:4px}
+  .progress-bar{background:#e0eaf5;border-radius:10px;height:6px;margin-top:8px;overflow:hidden}
+  .progress-fill{height:100%;border-radius:10px;background:var(--blue);transition:width 0.6s}
+
+  .reminder-list{display:flex;flex-direction:column;gap:10px}
+  .reminder-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s}
+  .reminder-card:hover{border-color:var(--blue-mid)}
+  .reminder-card.done{opacity:0.55}
+  .reminder-card.done .r-title{text-decoration:line-through}
+  .r-dot{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+  .r-info{flex:1}
+  .r-title{font-size:16px;font-weight:500;color:var(--text)}
+  .r-sub{font-size:13px;color:var(--muted);margin-top:2px}
+  .r-time{font-size:13px;font-weight:500;color:var(--blue)}
+  .r-check{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s}
+  .r-check.checked{background:var(--green);border-color:var(--green);color:#fff}
+
+  .priority-high .r-dot{background:var(--red-light);color:var(--red)}
+  .priority-medium .r-dot{background:var(--amber-light);color:var(--amber)}
+  .priority-low .r-dot{background:var(--blue-light);color:var(--blue)}
+
+  .memory-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .mem-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all 0.2s}
+  .mem-card:hover{border-color:var(--blue-mid);transform:translateY(-1px)}
+  .mem-photo{width:100%;aspect-ratio:4/3;object-fit:cover;background:linear-gradient(135deg,#c9dff5,#a8c8f0);display:flex;align-items:center;justify-content:center;font-size:40px}
+  .mem-body{padding:12px 14px}
+  .mem-body h4{font-size:14px;font-weight:500;margin-bottom:3px;color:var(--text)}
+  .mem-body p{font-size:12px;color:var(--muted);line-height:1.4}
+  .mem-date{font-size:11px;color:var(--blue-mid);margin-top:6px}
+
+  .add-mem-btn{background:var(--blue-light);border:2px dashed var(--blue-mid);border-radius:16px;padding:28px;text-align:center;cursor:pointer;color:var(--blue);font-size:15px;display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:12px;transition:all 0.2s}
+  .add-mem-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .add-mem-btn i{font-size:28px}
+
+  .people-list{display:flex;flex-direction:column;gap:12px}
+  .person-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all 0.2s}
+  .person-card:hover{border-color:var(--blue-mid)}
+  .avatar{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:500;flex-shrink:0;color:#fff;font-size:22px}
+  .person-info h3{font-size:17px;font-weight:500;margin-bottom:2px;color:var(--text)}
+  .relation-badge{display:inline-block;background:var(--blue-light);color:var(--blue);border-radius:8px;padding:2px 10px;font-size:12px;margin-bottom:5px}
+  .person-info p{font-size:13px;color:var(--muted);line-height:1.4}
+  .call-btn{margin-left:auto;background:var(--green-light);color:var(--green);border:none;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0}
+
+  .emergency-section{display:flex;flex-direction:column;gap:14px}
+  .big-sos{background:var(--red);border-radius:22px;padding:32px;text-align:center;color:#fff;cursor:pointer;transition:all 0.2s;border:none;width:100%;font-family:var(--font-sans)}
+  .big-sos:active{transform:scale(0.97)}
+  .big-sos .sos-icon{font-size:52px;margin-bottom:12px}
+  .big-sos h2{font-size:26px;font-weight:500;margin-bottom:6px}
+  .big-sos p{font-size:15px;opacity:0.9}
+  .em-contact{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px}
+  .em-contact .em-ava{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0}
+  .em-contact .em-info h4{font-size:15px;font-weight:500;color:var(--text)}
+  .em-contact .em-info p{font-size:13px;color:var(--muted)}
+  .em-call{margin-left:auto;background:var(--green);color:#fff;border:none;border-radius:12px;padding:10px 16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font-sans)}
+  .em-call i{font-size:16px}
+
+  .activity-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .activity-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;text-align:center;transition:all 0.2s}
+  .activity-card:hover{border-color:var(--blue-mid);transform:translateY(-1px)}
+  .activity-card .act-icon{font-size:36px;margin-bottom:10px}
+  .activity-card h3{font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px}
+  .activity-card p{font-size:12px;color:var(--muted)}
+  .act-badge{display:inline-block;border-radius:8px;padding:3px 10px;font-size:11px;margin-top:8px;font-weight:500}
+
+  .wellness-section{display:flex;flex-direction:column;gap:14px}
+  .ws-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px}
+  .ws-card h4{font-size:15px;font-weight:500;margin-bottom:12px;color:var(--text);display:flex;align-items:center;gap:8px}
+  .ws-card h4 i{color:var(--blue)}
+  .hydration-track{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .water-cup{width:36px;height:36px;border-radius:8px;border:2px solid var(--blue-mid);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;background:transparent;transition:all 0.2s}
+  .water-cup.filled{background:var(--blue-light);border-color:var(--blue)}
+  .mood-row{display:flex;gap:10px;margin-top:6px}
+  .mood-btn{flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);font-size:20px;cursor:pointer;text-align:center;transition:all 0.2s}
+  .mood-btn.selected{border-color:var(--blue);background:var(--blue-light)}
+  .streak-row{display:flex;gap:8px}
+  .streak-day{flex:1;border-radius:8px;padding:8px 4px;text-align:center;font-size:11px;background:var(--bg);color:var(--muted)}
+  .streak-day.done{background:var(--green-light);color:var(--green)}
+  .streak-day.today{border:2px solid var(--blue);background:var(--blue-light);color:var(--blue)}
+
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,30,60,0.5);z-index:100;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--card);border-radius:22px;padding:28px;max-width:380px;width:100%;position:relative;max-height:85vh;overflow-y:auto}
+  .modal h2{font-size:20px;font-weight:500;margin-bottom:8px;color:var(--text)}
+  .modal p{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+  .modal-close{position:absolute;top:16px;right:16px;background:var(--bg);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--muted)}
+  .modal-action{background:var(--blue);color:#fff;border:none;border-radius:14px;padding:14px 24px;font-size:16px;cursor:pointer;width:100%;font-family:var(--font-sans);margin-top:8px}
+
+  .voice-btn{background:var(--purple-light);color:var(--purple);border:none;border-radius:14px;padding:12px 20px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:var(--font-sans);margin-top:12px;width:100%;justify-content:center}
+  .voice-btn i{font-size:18px}
+
+  .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a2e4a;color:#fff;border-radius:14px;padding:12px 24px;font-size:14px;z-index:200;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1}
+
+  .nav-bottom{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:50}
+  .nb-btn{flex:1;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--muted);font-family:var(--font-sans);transition:color 0.2s}
+  .nb-btn.active{color:var(--blue)}
+  .nb-btn i{font-size:22px}
+
+  .memory-photo-placeholder{width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:44px;border-radius:0}
+
+  .match-game{padding:4px}
+  .match-intro{text-align:center;margin-bottom:16px}
+  .match-intro p{font-size:13px;color:var(--muted)}
+  .cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+  .m-card{aspect-ratio:1;border-radius:12px;border:2px solid var(--border);background:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:28px;transition:all 0.2s;color:transparent}
+  .m-card.flipped,.m-card.matched{color:var(--text);background:var(--card)}
+  .m-card.matched{border-color:var(--green);background:var(--green-light)}
+  .m-card.back{color:transparent!important;background:var(--blue)}
+
+  .daily-q{background:var(--purple-light);border-radius:16px;padding:20px;margin-bottom:14px}
+  .daily-q h4{font-size:16px;font-weight:500;color:var(--purple);margin-bottom:12px}
+  .q-options{display:flex;flex-direction:column;gap:8px}
+  .q-option{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;cursor:pointer;text-align:left;font-family:var(--font-sans);color:var(--text);transition:all 0.2s}
+  .q-option:hover{border-color:var(--purple);background:var(--purple-light)}
+  .q-option.correct{border-color:var(--green);background:var(--green-light);color:var(--green)}
+  .q-option.wrong{border-color:var(--red);background:var(--red-light);color:var(--red)}
+</style>
+
+<h2 class="sr-only">MemoryBridge — a compassionate digital companion for elderly care and memory support. Navigate between Home, Reminders, Memory Vault, Family, Emergency, Activities, and Wellness sections.</h2>
+
+<div id="app">
+  <div class="top-bar">
+    <div>
+      <div style="color:rgba(255,255,255,0.75);font-size:13px">Good morning</div>
+      <h1>MemoryBridge</h1>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+      <div class="time-date" id="clock">9:00 AM · Sat, May 9</div>
+      <button class="sos-pill" onclick="showModal('sos')">
+        <i class="ti ti-urgent" aria-hidden="true"></i> SOS
+      </button>
+    </div>
+  </div>
+
+  <nav class="nav" role="navigation" aria-label="Main navigation">
+    <button class="nav-btn active" onclick="goto('home',this)" aria-current="page"><i class="ti ti-home" aria-hidden="true"></i> Home</button>
+    <button class="nav-btn" onclick="goto('reminders',this)"><i class="ti ti-bell" aria-hidden="true"></i> Reminders</button>
+    <button class="nav-btn" onclick="goto('memories',this)"><i class="ti ti-photo" aria-hidden="true"></i> Memories</button>
+    <button class="nav-btn" onclick="goto('family',this)"><i class="ti ti-users" aria-hidden="true"></i> Family</button>
+    <button class="nav-btn" onclick="goto('emergency',this)"><i class="ti ti-emergency-bed" aria-hidden="true"></i> Emergency</button>
+    <button class="nav-btn" onclick="goto('activities',this)"><i class="ti ti-brain" aria-hidden="true"></i> Activities</button>
+    <button class="nav-btn" onclick="goto('wellness',this)"><i class="ti ti-heart" aria-hidden="true"></i> Wellness</button>
+  </nav>
+
+  <!-- HOME -->
+  <section id="home" class="section active">
+    <div class="greeting-card">
+      <h2>Good morning, Margaret!</h2>
+      <p>Today is a beautiful day. You have 3 reminders and your family loves you very much.</p>
+      <div class="weather-pill"><i class="ti ti-sun" aria-hidden="true"></i> Warm & Sunny · 26°C</div>
+    </div>
+
+    <div class="section-label">Your daily snapshot</div>
+    <div class="wellness-row">
+      <div class="well-card">
+        <div class="num">3</div>
+        <div class="lbl">Reminders today</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:33%"></div></div>
+      </div>
+      <div class="well-card">
+        <div class="num">5</div>
+        <div class="lbl">Glasses of water</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:62%;background:var(--teal)"></div></div>
+      </div>
+      <div class="well-card">
+        <div class="num">4</div>
+        <div class="lbl">Day streak</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:80%;background:var(--green)"></div></div>
+      </div>
+    </div>
+
+    <div class="section-label">Quick access</div>
+    <div class="quick-grid">
+      <div class="quick-card" onclick="goto('reminders', document.querySelectorAll('.nav-btn')[1])">
+        <div class="icon-circle" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-pill" aria-hidden="true"></i></div>
+        <h3>Reminders</h3>
+        <p>3 pending today</p>
+      </div>
+      <div class="quick-card" onclick="goto('memories', document.querySelectorAll('.nav-btn')[2])">
+        <div class="icon-circle" style="background:var(--purple-light);color:var(--purple)"><i class="ti ti-photo" aria-hidden="true"></i></div>
+        <h3>Memory Vault</h3>
+        <p>View family photos</p>
+      </div>
+      <div class="quick-card" onclick="goto('family', document.querySelectorAll('.nav-btn')[3])">
+        <div class="icon-circle" style="background:var(--teal-light);color:var(--teal)"><i class="ti ti-users" aria-hidden="true"></i></div>
+        <h3>Family Profiles</h3>
+        <p>Who's who guide</p>
+      </div>
+      <div class="quick-card" onclick="goto('activities', document.querySelectorAll('.nav-btn')[5])">
+        <div class="icon-circle" style="background:var(--green-light);color:var(--green)"><i class="ti ti-puzzle" aria-hidden="true"></i></div>
+        <h3>Brain Games</h3>
+        <p>Keep your mind sharp</p>
+      </div>
+    </div>
+
+    <div class="section-label">Recent family message</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;display:flex;gap:14px;align-items:flex-start">
+      <div style="width:44px;height:44px;border-radius:50%;background:#e85d9a;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:500;flex-shrink:0">R</div>
+      <div>
+        <div style="font-weight:500;font-size:15px;color:var(--text)">Riya <span style="font-size:12px;color:var(--muted);font-weight:400">· Granddaughter</span></div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px">"Grandma, I painted something for you! Coming Sunday — love you so much!"</div>
+        <div style="font-size:11px;color:var(--blue-mid);margin-top:6px">Today, 8:15 AM</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REMINDERS -->
+  <section id="reminders" class="section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:18px;font-weight:500;color:var(--text)">Today's reminders</div>
+      <div style="font-size:13px;color:var(--muted)">1 of 5 done</div>
+    </div>
+    <div class="reminder-list">
+      <div class="reminder-card priority-high done" onclick="toggleReminder(this)">
+        <div class="r-dot"><i class="ti ti-pill" aria-hidden="true"></i></div>
+        <div class="r-info">
+          <div class="r-title">Morning Medicine</div>
+          <div class="r-sub">Blood pressure tablet + Vitamin D</div>
+        </div>
+        <div><div class="r-time">8:00 AM</div><div class="r-check checked" style="margin:6px 0 0 auto"><i class="ti ti-check" aria-hidden="true"></i></div></div>
+      </div>
+      <div class="reminder-card priority-high" onclick="toggleReminder(this)">
+        <div class="r-dot"><i class="ti ti-droplet" aria-hidden="true"></i></div>
+        <div class="r-info">
+          <div class="r-title">Drink Water</div>
+          <div class="r-sub">Have a full glass of water</div>
+        </div>
+        <div><div class="r-time">10:00 AM</div><div class="r-check" style="margin:6px 0 0 auto"></div></div>
+      </div>
+      <div class="reminder-card priority-medium" onclick="toggleReminder(this)">
+        <div class="r-dot"><i class="ti ti-bowl-spoon" aria-hidden="true"></i></div>
+        <div class="r-info">
+          <div class="r-title">Lunch</div>
+          <div class="r-sub">Dal, rice, and vegetables</div>
+        </div>
+        <div><div class="r-time">12:30 PM</div><div class="r-check" style="margin:6px 0 0 auto"></div></div>
+      </div>
+      <div class="reminder-card priority-low" onclick="toggleReminder(this)">
+        <div class="r-dot"><i class="ti ti-walk" aria-hidden="true"></i></div>
+        <div class="r-info">
+          <div class="r-title">Afternoon Walk</div>
+          <div class="r-sub">15 minute gentle walk outside</div>
+        </div>
+        <div><div class="r-time">4:00 PM</div><div class="r-check" style="margin:6px 0 0 auto"></div></div>
+      </div>
+      <div class="reminder-card priority-medium" onclick="toggleReminder(this)">
+        <div class="r-dot"><i class="ti ti-moon" aria-hidden="true"></i></div>
+        <div class="r-info">
+          <div class="r-title">Evening Medicine</div>
+          <div class="r-sub">Metformin tablet with dinner</div>
+        </div>
+        <div><div class="r-time">8:00 PM</div><div class="r-check" style="margin:6px 0 0 auto"></div></div>
+      </div>
+    </div>
+    <div class="voice-btn" onclick="showToast('Voice reminders are active — I will speak to you at reminder time!')"><i class="ti ti-microphone" aria-hidden="true"></i> Enable voice reminders</div>
+    <div style="margin-top:14px;background:var(--blue-light);border-radius:14px;padding:14px 16px;font-size:13px;color:var(--blue);line-height:1.5">
+      <i class="ti ti-info-circle" aria-hidden="true"></i> Tap any reminder card to mark it complete. Green means done!
+    </div>
+  </section>
+
+  <!-- MEMORIES -->
+  <section id="memories" class="section">
+    <div style="font-size:18px;font-weight:500;color:var(--text);margin-bottom:6px">Memory Vault</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Your treasured family moments, always close to your heart.</div>
+    <div class="memory-grid">
+      <div class="mem-card" onclick="showModal('mem1')">
+        <div class="memory-photo-placeholder" style="background:linear-gradient(135deg,#ffd3a5,#ffb347)">🌸</div>
+        <div class="mem-body">
+          <h4>Riya's birthday, 2023</h4>
+          <p>The whole family together at the garden party</p>
+          <div class="mem-date">March 15, 2023</div>
+        </div>
+      </div>
+      <div class="mem-card" onclick="showModal('mem2')">
+        <div class="memory-photo-placeholder" style="background:linear-gradient(135deg,#a8edea,#fed6e3)">🏖️</div>
+        <div class="mem-body">
+          <h4>Goa family trip</h4>
+          <p>A wonderful week by the sea</p>
+          <div class="mem-date">December 2022</div>
+        </div>
+      </div>
+      <div class="mem-card" onclick="showModal('mem3')">
+        <div class="memory-photo-placeholder" style="background:linear-gradient(135deg,#d4fc79,#96e6a1)">🎊</div>
+        <div class="mem-body">
+          <h4>Golden anniversary</h4>
+          <p>50 years of love with your beloved husband</p>
+          <div class="mem-date">July 8, 2019</div>
+        </div>
+      </div>
+      <div class="mem-card" onclick="showModal('mem4')">
+        <div class="memory-photo-placeholder" style="background:linear-gradient(135deg,#ffecd2,#fcb69f)">🕌</div>
+        <div class="mem-body">
+          <h4>Diwali celebration</h4>
+          <p>Lights, sweets, and so much love</p>
+          <div class="mem-date">October 2023</div>
+        </div>
+      </div>
+    </div>
+    <div class="add-mem-btn" onclick="showToast('Ask a family member to upload a new memory for you!')">
+      <i class="ti ti-photo-plus" aria-hidden="true"></i>
+      Add a new memory
+    </div>
+  </section>
+
+  <!-- FAMILY -->
+  <section id="family" class="section">
+    <div style="font-size:18px;font-weight:500;color:var(--text);margin-bottom:6px">Your loved ones</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Tap a card to learn more about someone you love.</div>
+    <div class="people-list">
+      <div class="person-card" onclick="showModal('p1')">
+        <div class="avatar" style="background:#e85d9a">R</div>
+        <div class="person-info">
+          <div class="relation-badge">Granddaughter</div>
+          <h3>Riya</h3>
+          <p>Loves painting. Visits every Sunday and always brings sweets.</p>
+        </div>
+        <button class="call-btn" aria-label="Call Riya"><i class="ti ti-phone" aria-hidden="true"></i></button>
+      </div>
+      <div class="person-card" onclick="showModal('p2')">
+        <div class="avatar" style="background:#2d7dd2">A</div>
+        <div class="person-info">
+          <div class="relation-badge">Son</div>
+          <h3>Arun</h3>
+          <p>Works as a doctor in Mumbai. Calls every evening at 7 PM.</p>
+        </div>
+        <button class="call-btn" aria-label="Call Arun"><i class="ti ti-phone" aria-hidden="true"></i></button>
+      </div>
+      <div class="person-card" onclick="showModal('p3')">
+        <div class="avatar" style="background:#2a9d5c">P</div>
+        <div class="person-info">
+          <div class="relation-badge">Daughter-in-law</div>
+          <h3>Priya</h3>
+          <p>Arun's wife. Loves cooking and often sends homemade food.</p>
+        </div>
+        <button class="call-btn" aria-label="Call Priya"><i class="ti ti-phone" aria-hidden="true"></i></button>
+      </div>
+      <div class="person-card" onclick="showModal('p4')">
+        <div class="avatar" style="background:#6b4eb6">S</div>
+        <div class="person-info">
+          <div class="relation-badge">Caregiver</div>
+          <h3>Sunita</h3>
+          <p>Your morning helper. Arrives at 8 AM every weekday.</p>
+        </div>
+        <button class="call-btn" aria-label="Call Sunita"><i class="ti ti-phone" aria-hidden="true"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMERGENCY -->
+  <section id="emergency" class="section">
+    <div style="font-size:18px;font-weight:500;color:var(--text);margin-bottom:14px">Emergency support</div>
+    <div class="emergency-section">
+      <button class="big-sos" onclick="showModal('sos')" aria-label="Tap to call for emergency help">
+        <div class="sos-icon"><i class="ti ti-urgent" aria-hidden="true"></i></div>
+        <h2>Tap for Emergency Help</h2>
+        <p>This will immediately alert your family and emergency services</p>
+      </button>
+      <div style="font-size:13px;font-weight:500;color:var(--muted);margin-top:4px">Emergency contacts</div>
+      <div class="em-contact">
+        <div class="em-ava" style="background:#2d7dd2">A</div>
+        <div class="em-info">
+          <h4>Arun (Son)</h4>
+          <p>Primary contact · Doctor</p>
+        </div>
+        <button class="em-call" onclick="showToast('Calling Arun...')"><i class="ti ti-phone" aria-hidden="true"></i> Call</button>
+      </div>
+      <div class="em-contact">
+        <div class="em-ava" style="background:#e85d9a">R</div>
+        <div class="em-info">
+          <h4>Riya (Granddaughter)</h4>
+          <p>Secondary contact</p>
+        </div>
+        <button class="em-call" onclick="showToast('Calling Riya...')"><i class="ti ti-phone" aria-hidden="true"></i> Call</button>
+      </div>
+      <div class="em-contact">
+        <div class="em-ava" style="background:var(--red)">🚑</div>
+        <div class="em-info">
+          <h4>Ambulance</h4>
+          <p>National emergency · 112</p>
+        </div>
+        <button class="em-call" onclick="showToast('Calling 112 emergency services...')"><i class="ti ti-phone" aria-hidden="true"></i> Call</button>
+      </div>
+      <div style="background:var(--blue-light);border-radius:14px;padding:14px 16px;font-size:13px;color:var(--blue);line-height:1.5">
+        <i class="ti ti-map-pin" aria-hidden="true"></i> Location sharing is active — your family can see you are safe at home.
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTIVITIES -->
+  <section id="activities" class="section">
+    <div style="font-size:18px;font-weight:500;color:var(--text);margin-bottom:6px">Brain activities</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Gentle exercises to keep your mind bright and active.</div>
+
+    <div class="daily-q">
+      <h4><i class="ti ti-help-circle" aria-hidden="true"></i> Daily question — What is the capital of India?</h4>
+      <div class="q-options" id="q-opts">
+        <button class="q-option" onclick="answerQ(this,false)">Mumbai</button>
+        <button class="q-option" onclick="answerQ(this,true)">New Delhi</button>
+        <button class="q-option" onclick="answerQ(this,false)">Kolkata</button>
+        <button class="q-option" onclick="answerQ(this,false)">Chennai</button>
+      </div>
+    </div>
+
+    <div class="section-label">Memory matching game</div>
+    <div class="match-game">
+      <div class="match-intro"><p>Find the matching pairs! Tap two cards to flip them.</p></div>
+      <div class="cards-grid" id="match-grid"></div>
+      <div style="text-align:center;font-size:13px;color:var(--muted)" id="match-status">Tap any card to start</div>
+      <button onclick="initMatch()" style="margin-top:10px;width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--blue);background:var(--blue-light);color:var(--blue);font-size:14px;cursor:pointer;font-family:var(--font-sans)">
+        <i class="ti ti-refresh" aria-hidden="true"></i> Shuffle cards
+      </button>
+    </div>
+
+    <div class="section-label">Other activities</div>
+    <div class="activity-grid">
+      <div class="activity-card" onclick="showToast('Great job! Writing today\'s memory keeps your mind strong.')">
+        <div class="act-icon">📔</div>
+        <h3>Remember today</h3>
+        <p>Write one memory from today</p>
+        <div class="act-badge" style="background:var(--green-light);color:var(--green)">Daily</div>
+      </div>
+      <div class="activity-card" onclick="showToast('Breathing exercise started. Breathe in... and out...')">
+        <div class="act-icon">🌬️</div>
+        <h3>Calm breathing</h3>
+        <p>4-7-8 breathing for peace</p>
+        <div class="act-badge" style="background:var(--teal-light);color:var(--teal)">Relaxing</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WELLNESS -->
+  <section id="wellness" class="section">
+    <div style="font-size:18px;font-weight:500;color:var(--text);margin-bottom:14px">Wellness dashboard</div>
+    <div class="wellness-section">
+      <div class="ws-card">
+        <h4><i class="ti ti-droplet" aria-hidden="true"></i> Hydration tracker — tap each cup you drink</h4>
+        <div class="hydration-track" id="hydration">
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin-top:10px" id="hydration-label">5 of 8 cups today — great effort!</div>
+      </div>
+      <div class="ws-card">
+        <h4><i class="ti ti-mood-smile" aria-hidden="true"></i> How are you feeling today?</h4>
+        <div class="mood-row">
+          <button class="mood-btn" onclick="selectMood(this)" aria-label="Happy">😊</button>
+          <button class="mood-btn" onclick="selectMood(this)" aria-label="Calm">😌</button>
+          <button class="mood-btn" onclick="selectMood(this)" aria-label="Tired">😴</button>
+          <button class="mood-btn" onclick="selectMood(this)" aria-label="Sad">😢</button>
+          <button class="mood-btn selected" onclick="selectMood(this)" aria-label="Loved">🥰</button>
+        </div>
+      </div>
+      <div class="ws-card">
+        <h4><i class="ti ti-flame" aria-hidden="true"></i> Routine streak — this week</h4>
+        <div class="streak-row">
+          <div class="streak-day done">Mon<br>✓</div>
+          <div class="streak-day done">Tue<br>✓</div>
+          <div class="streak-day done">Wed<br>✓</div>
+          <div class="streak-day done">Thu<br>✓</div>
+          <div class="streak-day today">Fri<br>→</div>
+          <div class="streak-day">Sat</div>
+          <div class="streak-day">Sun</div>
+        </div>
+        <div style="font-size:13px;color:var(--green);margin-top:10px;font-weight:500">4-day streak — you are doing wonderfully!</div>
+      </div>
+      <div class="ws-card">
+        <h4><i class="ti ti-chart-bar" aria-hidden="true"></i> Today's progress</h4>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:4px"><span>Reminders completed</span><span>1 / 5</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:4px"><span>Hydration goal</span><span>5 / 8 cups</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:62%;background:var(--teal)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:4px"><span>Brain activity</span><span>1 done</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:50%;background:var(--purple)"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-label="Detail view">
+  <div class="modal" id="modal-content">
+    <button class="modal-close" onclick="closeModal()" aria-label="Close"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const modals = {
+  sos:{html:`<div style="text-align:center"><div style="font-size:60px;margin-bottom:12px">🚨</div><h2 style="color:var(--red);margin-bottom:8px">Emergency SOS</h2><p>This will alert your son Arun, granddaughter Riya, and call 112 emergency services. Are you sure?</p><button class="modal-action" style="background:var(--red);margin-top:16px" onclick="showToast('SOS alert sent! Arun and Riya have been notified. Help is on the way!');closeModal()">Yes, send emergency alert</button><button class="modal-action" style="background:var(--bg);color:var(--text);border:1px solid var(--border);margin-top:8px" onclick="closeModal()">Cancel — I am safe</button></div>`},
+  mem1:{html:`<div style="font-size:60px;text-align:center;margin-bottom:16px">🌸</div><h2>Riya's birthday, 2023</h2><p>The whole family gathered in the garden on a beautiful March afternoon. Riya turned 12 and everyone danced and laughed together. You made her favourite kheer!</p><div style="font-size:12px;color:var(--muted);margin-top:8px">Shared by Arun · March 15, 2023</div><button class="modal-action" onclick="showToast('Playing voice message from Arun...');closeModal()">▶ Play voice message from Arun</button>`},
+  mem2:{html:`<div style="font-size:60px;text-align:center;margin-bottom:16px">🏖️</div><h2>Goa family trip</h2><p>Seven magical days by the sea in December 2022. You collected shells on the beach and watched the sunset every evening with the whole family around you.</p><div style="font-size:12px;color:var(--muted);margin-top:8px">Shared by Priya · December 2022</div><button class="modal-action" onclick="showToast('Playing voice message from Priya...');closeModal()">▶ Play voice message from Priya</button>`},
+  mem3:{html:`<div style="font-size:60px;text-align:center;margin-bottom:16px">🎊</div><h2>Golden anniversary</h2><p>Fifty beautiful years with your husband Ramesh. The family surprised you with a celebration filled with flowers, music, and so many happy tears. A memory to hold forever.</p><div style="font-size:12px;color:var(--muted);margin-top:8px">July 8, 2019</div>`},
+  mem4:{html:`<div style="font-size:60px;text-align:center;margin-bottom:16px">🕌</div><h2>Diwali 2023</h2><p>The whole house glowed with diyas and laughter. Riya helped you make rangoli and Arun set off sparklers in the courtyard. One of the brightest Diwalis in years.</p><div style="font-size:12px;color:var(--muted);margin-top:8px">Shared by Riya · October 2023</div>`},
+  p1:{html:`<div style="text-align:center;margin-bottom:16px"><div style="width:72px;height:72px;border-radius:50%;background:#e85d9a;color:#fff;font-size:28px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 10px">R</div><h2>Riya</h2><div style="background:var(--blue-light);color:var(--blue);border-radius:8px;display:inline-block;padding:3px 12px;font-size:13px;margin:6px 0">Granddaughter</div></div><p>Riya is 12 years old and full of creativity. She loves painting watercolours and always brings you her artwork. She visits every Sunday morning and you love doing puzzles together. Her favourite food is your homemade kheer!</p><button class="modal-action" onclick="showToast('Calling Riya...');closeModal()"><i class="ti ti-phone"></i> Call Riya</button>`},
+  p2:{html:`<div style="text-align:center;margin-bottom:16px"><div style="width:72px;height:72px;border-radius:50%;background:#2d7dd2;color:#fff;font-size:28px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 10px">A</div><h2>Arun</h2><div style="background:var(--blue-light);color:var(--blue);border-radius:8px;display:inline-block;padding:3px 12px;font-size:13px;margin:6px 0">Son</div></div><p>Arun is your eldest son, 45 years old. He works as a cardiologist in Mumbai. He calls you every evening at 7 PM and visits once a month. He worries about you with love and makes sure you take your medicines.</p><button class="modal-action" onclick="showToast('Calling Arun...');closeModal()"><i class="ti ti-phone"></i> Call Arun</button>`},
+  p3:{html:`<div style="text-align:center;margin-bottom:16px"><div style="width:72px;height:72px;border-radius:50%;background:#2a9d5c;color:#fff;font-size:28px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 10px">P</div><h2>Priya</h2><div style="background:var(--blue-light);color:var(--blue);border-radius:8px;display:inline-block;padding:3px 12px;font-size:13px;margin:6px 0">Daughter-in-law</div></div><p>Priya is Arun's wonderful wife. She is a school teacher who loves cooking. She sends tiffin boxes with your favourite foods and always remembers your dietary preferences. She is very gentle and caring.</p><button class="modal-action" onclick="showToast('Calling Priya...');closeModal()"><i class="ti ti-phone"></i> Call Priya</button>`},
+  p4:{html:`<div style="text-align:center;margin-bottom:16px"><div style="width:72px;height:72px;border-radius:50%;background:#6b4eb6;color:#fff;font-size:28px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 10px">S</div><h2>Sunita</h2><div style="background:var(--purple-light);color:var(--purple);border-radius:8px;display:inline-block;padding:3px 12px;font-size:13px;margin:6px 0">Caregiver</div></div><p>Sunita has been your morning helper for 3 years. She arrives at 8 AM every weekday, helps with medicines, cooking, and light cleaning. She is trustworthy and gentle — someone you can always depend on.</p><button class="modal-action" onclick="showToast('Calling Sunita...');closeModal()"><i class="ti ti-phone"></i> Call Sunita</button>`}
+};
+
+function showModal(id){
+  if(!modals[id]) return;
+  document.getElementById('modal-body').innerHTML = modals[id].html;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+
+function goto(id, btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>{b.classList.remove('active');b.removeAttribute('aria-current')});
+  document.getElementById(id).classList.add('active');
+  if(btn){btn.classList.add('active');btn.setAttribute('aria-current','page')}
+}
+
+function toggleReminder(card){
+  card.classList.toggle('done');
+  const check = card.querySelector('.r-check');
+  check.classList.toggle('checked');
+  if(check.classList.contains('checked')){
+    check.innerHTML='<i class="ti ti-check"></i>';
+    showToast('Great job! Reminder marked as complete.');
+  } else {
+    check.innerHTML='';
+  }
+}
+
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function answerQ(btn, correct){
+  const opts=document.querySelectorAll('.q-option');
+  opts.forEach(o=>o.disabled=true);
+  if(correct){btn.classList.add('correct');showToast('Correct! Well done, Margaret!');}
+  else{btn.classList.add('wrong');opts.forEach(o=>{if(o.textContent==='New Delhi')o.classList.add('correct')});showToast('Not quite — the answer is New Delhi. Keep going!');}
+}
+
+const emojis=['🌸','🌺','🍎','🍊','🎵','🎶','⭐','🌙'];
+let matchCards=[], flipped=[], matched=0;
+function initMatch(){
+  matched=0;flipped=[];
+  const pairs=[...emojis,...emojis].sort(()=>Math.random()-0.5);
+  matchCards=pairs;
+  const grid=document.getElementById('match-grid');
+  grid.innerHTML='';
+  pairs.forEach((e,i)=>{
+    const c=document.createElement('div');
+    c.className='m-card back';c.dataset.val=e;c.dataset.idx=i;
+    c.setAttribute('role','button');c.setAttribute('aria-label','Card face down');
+    c.onclick=()=>flipCard(c);
+    grid.appendChild(c);
+  });
+  document.getElementById('match-status').textContent='Tap any card to start';
+}
+
+function flipCard(card){
+  if(card.classList.contains('matched')||card.classList.contains('flipped')||flipped.length===2) return;
+  card.classList.remove('back');card.classList.add('flipped');
+  card.textContent=card.dataset.val;
+  flipped.push(card);
+  if(flipped.length===2){
+    if(flipped[0].dataset.val===flipped[1].dataset.val){
+      flipped.forEach(c=>c.classList.add('matched'));
+      matched++;flipped=[];
+      document.getElementById('match-status').textContent=matched===8?'You matched all pairs! Wonderful!':'Match found! Keep going...';
+      if(matched===8) showToast('Excellent! You matched all the pairs!');
+    } else {
+      setTimeout(()=>{
+        flipped.forEach(c=>{c.classList.remove('flipped');c.classList.add('back');c.textContent=''});
+        flipped=[];
+      },900);
+    }
+  }
+}
+initMatch();
+
+(function initHydration(){
+  const c=document.getElementById('hydration');
+  for(let i=0;i<8;i++){
+    const b=document.createElement('div');
+    b.className='water-cup'+(i<5?' filled':'');
+    b.innerHTML='<i class="ti ti-glass" aria-hidden="true"></i>';
+    b.setAttribute('aria-label',(i<5?'Cup drunk':'Cup not yet drunk'));
+    b.onclick=function(){
+      this.classList.toggle('filled');
+      const done=document.querySelectorAll('.water-cup.filled').length;
+      document.getElementById('hydration-label').textContent=done+' of 8 cups today'+(done>=8?' — goal reached! Amazing!':(done>=5?' — great effort!':' — keep drinking!'));
+    };
+    c.appendChild(b);
+  }
+})();
+
+function selectMood(btn){
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  showToast('Mood recorded — thank you for checking in!');
+}
+
+(function clock(){
+  function update(){
+    const now=new Date();
+    const d=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][now.getDay()];
+    const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getMonth()];
+    let h=now.getHours(),mm=String(now.getMinutes()).padStart(2,'0');
+    const ampm=h>=12?'PM':'AM';h=h%12||12;
+    document.getElementById('clock').textContent=h+':'+mm+' '+ampm+' · '+d+', '+m+' '+now.getDate();
+  }
+  update();setInterval(update,60000);
+})();
+</script>
